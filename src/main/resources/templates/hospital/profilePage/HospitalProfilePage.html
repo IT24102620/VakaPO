@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Hospital Profile</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" th:href="@{/css/hospital/profilePage/HospitalProfilePage.css}">
+    <link rel="stylesheet" th:href="@{/css/shared/notifications.css}">
+    <link rel="stylesheet" th:href="@{/css/hospital/profilePage/DynamicStaff.css}">
+</head>
+
+<body>
+        <!-- Announcement Section -->
+        <div class="announcement" id="emergencyAnnouncement" style="display: none;">
+            <p id="emergencyMessage">Loading emergency notification...</p>
+            <p class="announcement__cancel" onclick="hideEmergencyAnnouncement()">X</p>
+        </div>
+
+    <!-- Navbar Section -->
+    <div class="navbar">
+        <div class="navbar__section1">
+            <img src="../../Images/logo.png" alt="logo">
+        </div>
+        <div class="navbar__section2">
+            <a th:href="@{/hospital/landing}">Home</a>
+            <a th:href="@{/hospital/appointments}">Appointments</a>
+            <a th:href="@{/hospital/staff-page}">Staff</a>
+            <a th:href="@{/hospital/feedback}">Feedback</a>
+        </div>
+        <div class="navbar__section3">
+            <!-- Notification Icon -->
+            <div class="notification-icon" style="position: relative; margin-right: 15px;">
+                <img src="../../Images/notification.png" alt="notifications" style="width: 24px; height: 24px;">
+                <!-- Notification Dropdown -->
+                <div class="notification-dropdown">
+                    <div class="notification-header">
+                        <h3>Notifications</h3>
+                        <a href="#" class="mark-all-read" onclick="notificationManager.markAllAsRead()">Mark all read</a>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-loading">Loading notifications...</div>
+                    </div>
+                    <div class="notification-footer">
+                        <a href="#" onclick="notificationManager.viewAllNotifications()">View all notifications</a>
+                    </div>
+                </div>
+            </div>
+            <img src="../../Images/profile.png" alt="profile" class="profile-icon">
+        </div>
+        <div class="navbar__section4">
+            <img src="../../Images/menu-bar.png" alt="menu-bar">
+        </div>
+    </div>
+
+    <!-- Success/Error Messages -->
+    <div th:if="${successMessage}" class="alert alert-success" style="background-color: #d4edda; color: #155724; padding: 15px; margin: 20px; border-radius: 5px; border: 1px solid #c3e6cb;">
+        <span th:text="${successMessage}"></span>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-error" style="background-color: #f8d7da; color: #721c24; padding: 15px; margin: 20px; border-radius: 5px; border: 1px solid #f5c6cb;">
+        <span th:text="${errorMessage}"></span>
+    </div>
+
+    <!-- Profile Section -->
+    <div class="profile">
+        <div class="profile__section1">
+            <p class="profile__close">X</p>
+            <h3>Welcome, <span th:text="${hospitalName}">Hospital Name</span></h3> <br>
+            <a th:href="@{/hospital/profile}">Your Profile</a> <br>
+            <form th:action="@{/logout}" method="post" style="display: inline;" onsubmit="return confirm('Are you sure you want to logout?')">
+                <button type="submit" class="btn-logout">Logout</button>
+            </form>
+            <br><br>
+            <button id="deleteAccountBtn" class="btn-delete-account" onclick="confirmDeleteAccount()">
+                🗑️ Delete My Account
+            </button>
+        </div>
+    </div>
+
+    <!-- Responsive Navbar -->
+    <div class="responsive__navbar">
+        <div class="responsive__navbar__section1">
+            <p>X</p> <br>
+            <h3>Welcome, <span th:text="${hospitalName}">Hospital Name</span></h3>
+            <a th:href="@{/hospital/profile}">Your Profile</a>
+            <a th:href="@{/hospital/landing}">Home</a>
+            <a href="../Appointment Page/HospitalAppointmentPage.html">Appointments</a>
+            <a href="../Staff Page/HospitalStaffPage.html">Staff</a>
+            <a href="../Feedback Page/HospitalFeedbackPage.html">Feedback</a>
+            <div class="responsive__navbar__section1__button">
+                <form th:action="@{/logout}" method="post" style="display: inline;">
+                    <button type="submit">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hospital Information Section -->
+    <div class="personal__information">
+        <div class="personal__information__section1">
+            <img th:src="@{/Images/profile new.png}" alt="profile">
+        </div>
+        <div class="personal__information__section2">
+            <button id="editHospitalBtn">Edit</button> <br> <br> <br>
+            <h1>Hospital Information</h1>
+            <table>
+                <tr>
+                    <td>ID</td>
+                    <td>:</td>
+                    <td th:text="${hospitalId}">Hospital ID</td>
+                </tr>
+                <tr>
+                    <td>Name</td>
+                    <td>:</td>
+                    <td th:text="${hospitalName}">Hospital Name</td>
+                </tr>
+                <tr>
+                    <td>Email</td>
+                    <td>:</td>
+                    <td th:text="${hospitalEmail}">Hospital Email</td>
+                </tr>
+                <tr>
+                    <td>Contact</td>
+                    <td>:</td>
+                    <td th:text="${hospitalContact}">Hospital Contact</td>
+                </tr>
+                <tr>
+                    <td>Location</td>
+                    <td>:</td>
+                    <td th:text="${hospitalLocation}">Hospital Location</td>
+                </tr>
+                <tr>
+                    <td>Registration Number</td>
+                    <td>:</td>
+                    <td th:text="${hospitalRnumber}">Registration Number</td>
+                </tr>
+            </table>
+        </div>
+    </div> <br>
+
+    <!-- Staff Details Section -->
+    <div class="staff__details">
+        <h2>Doctors</h2>
+        <div class="staff__details__doctor" id="doctorsContainer">
+            <!-- Doctors will be loaded dynamically here -->
+            <div class="loading-message">Loading doctors...</div>
+        </div>
+
+        <h2>Nurses</h2>
+        <div class="staff__details__doctor" id="nursesContainer">
+            <!-- Nurses will be loaded dynamically here -->
+            <div class="loading-message">Loading nurses...</div>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <div class="footer">
+        <p>VakaPo | Making Vaccination booking simple & seecure </p>
+        <p>&copy; 2025 VakaPo. All Rights Reserved</p>
+    </div>
+
+    <!-- Load dynamic staff JavaScript -->
+    <script th:src="@{/js/hospital/profilePage/HospitalProfilePage.js}"></script>
+    <script th:src="@{/js/shared/notifications.js}"></script>
+
+    <!-- Edit Hospital Profile Popup -->
+    <div id="editHospitalModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Hospital Profile</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="editHospitalForm" th:action="@{/hospital/profile/update}" method="post">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editId">ID</label>
+                            <input type="text" id="editId" name="id" th:value="${hospitalId}" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label for="editStatus">Status</label>
+                            <input type="text" id="editStatus" th:value="${hospitalStatus}" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editName">Hospital Name *</label>
+                            <input type="text" id="editName" name="username" th:value="${hospitalName}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editEmail">Email *</label>
+                            <input type="email" id="editEmail" name="email" th:value="${hospitalEmail}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="editContact">Contact Number *</label>
+                            <input type="tel" id="editContact" name="contact" th:value="${hospitalContact}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="editLocation">Location</label>
+                            <input type="text" id="editLocation" name="address" th:value="${hospitalLocation}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="editRnumber">Registration Number</label>
+                            <input type="text" id="editRnumber" name="rnumber" th:value="${hospitalRnumber}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group full-width">
+                            <label for="editPassword">New Password (Optional)</label>
+                            <input type="password" id="editPassword" name="newPassword" placeholder="Enter new password (leave blank to keep current)">
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" id="cancelEdit" class="btn-cancel">Cancel</button>
+                        <button type="submit" class="btn-save">Save Changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Announcement Script -->
+    <script>
+        // Load emergency notification on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadEmergencyNotification();
+        });
+
+        function loadEmergencyNotification() {
+            fetch('/api/public/emergency/latest')
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.message) {
+                        document.getElementById('emergencyMessage').textContent = data.message;
+                        document.getElementById('emergencyAnnouncement').style.display = 'block';
+                    }
+                })
+                .catch(error => {
+                    console.log('No emergency notification or error loading:', error);
+                });
+        }
+
+        function hideEmergencyAnnouncement() {
+            document.getElementById('emergencyAnnouncement').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>
